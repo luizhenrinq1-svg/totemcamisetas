@@ -733,6 +733,43 @@
             });
         });
       }
+      // ==========================================
+      // ROBOZINHO DE DOWNLOAD OFFLINE
+      // ==========================================
+      function preCarregarTodasAsImagens() {
+          console.log("Iniciando download em segundo plano para modo offline...");
+          
+          let urlsParaBaixar = [];
+          
+          // Percorre todo o catálogo para pegar os links
+          for (let curso in CATALOGO) {
+              let dados = CATALOGO[curso];
+              for (let mod in dados.imagens) {
+                  for (let cor in dados.imagens[mod]) {
+                      let url = ${dados.baseUrl}modelo${mod}/${dados.imagens[mod][cor]};
+                      urlsParaBaixar.push(url);
+                  }
+              }
+          }
+
+          // Baixa as imagens silenciosamente
+          let carregadas = 0;
+          urlsParaBaixar.forEach(url => {
+              fetch(url, { mode: 'no-cors' }) // Força o Service Worker a interceptar e salvar
+                  .then(() => {
+                      carregadas++;
+                      if(carregadas === urlsParaBaixar.length) {
+                          console.log("✅ Todas as imagens foram baixadas! O Totem está 100% Offline.");
+                      }
+                  }).catch(() => {});
+          });
+      }
+
+      // 5 segundos após abrir o site, ele começa a baixar tudo sozinho
+      setTimeout(preCarregarTodasAsImagens, 5000);
+      
     </script>
   </body>
 </html>
+
+
