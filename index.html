@@ -127,6 +127,8 @@
       }
       
       .btn-primary { border-radius: 10px; font-weight: 700; padding: 12px; background: #0d6efd; border:none;}
+      .btn-success { border-radius: 10px; transition: all 0.3s;}
+      .btn-success:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(25, 135, 84, 0.3); }
 
       .fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
       @keyframes fadeInUp {
@@ -262,7 +264,7 @@
                 <h2>TOTEM DE CAMISETAS PET-ACE</h2>
                 <div class="alert alert-light text-start border mt-4 mb-4 rounded-4" style="font-size: 1rem; line-height: 1.6;">
                     <p class="mb-2"><i class="bi bi-info-circle text-primary"></i> <strong>Toque no seu curso abaixo</strong> para simular como ficará sua camiseta.</p>
-                    <p class="mb-0 text-danger fw-bold"><i class="bi bi-exclamation-circle-fill"></i> Para realizar a compra oficial, escaneie o QR Code na tela de descanso ou solicite o QR-CODE.</p>
+                    <p class="mb-0 text-danger fw-bold"><i class="bi bi-exclamation-circle-fill"></i> Para realizar a compra oficial, escaneie o QR Code na tela de descanso ou solicite o QR-CODE abaixo.</p>
                 </div>
             </div>
             
@@ -344,6 +346,15 @@
                             </div>
 
                             <div id="containerItensInputs"></div>
+                            
+                            <!-- BOTAO PARA SOLICITAR QR CODE -->
+                            <div class="mt-5 text-center bg-light p-4 rounded-4 border">
+                                <h5 class="mb-3 fw-bold text-dark fs-4"><i class="bi bi-cart-check-fill me-2 text-success"></i>Gostou? Faça seu pedido!</h5>
+                                <p class="text-muted fs-5 mb-4">Para concluir a sua compra, escaneie o código com o celular e acesse a página oficial do formulário.</p>
+                                <button type="button" class="btn btn-success btn-lg px-5 py-3 fs-4 fw-bold shadow-sm w-100" onclick="abrirModalQRCode()">
+                                    <i class="bi bi-qr-code-scan me-2"></i> Solicitar QR Code para Compra
+                                </button>
+                            </div>
 
                         </div>
                     </div>
@@ -375,12 +386,35 @@
     </div>
 
     <!-- MODAIS -->
+    <!-- Modal de Zoom da Camiseta -->
     <div class="modal fade" id="modalZoom" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content bg-transparent border-0">
           <div class="modal-body p-0 text-center position-relative">
              <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3 p-3 bg-white rounded-circle opacity-100 shadow" data-bs-dismiss="modal"></button>
              <img src="" id="imgZoomTarget" class="img-fluid rounded-4 shadow-lg" style="max-height: 90vh;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal do QR Code de Compra -->
+    <div class="modal fade" id="modalQRCode" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+          <div class="modal-header bg-success text-white border-0 rounded-top-4 p-4">
+            <h4 class="modal-title fw-bold mb-0"><i class="bi bi-qr-code-scan me-2"></i>Faça seu Pedido</h4>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+          <div class="modal-body text-center p-5">
+             <h5 class="fw-bold mb-4 fs-4 text-dark">Aponte a câmera do celular</h5>
+             <div class="bg-light p-3 rounded-4 d-inline-block border mb-4">
+                 <img id="qrCodeModalImg" src="" alt="QR Code" class="img-fluid" style="width: 250px; height: 250px;">
+             </div>
+             <p class="text-muted fs-5 mb-0">Você será redirecionado em seu celular para a página oficial de encomendas.</p>
+          </div>
+          <div class="modal-footer border-0 justify-content-center pb-4 pt-0">
+            <button type="button" class="btn btn-secondary btn-lg px-5 fw-bold" data-bs-dismiss="modal">Voltar</button>
           </div>
         </div>
       </div>
@@ -422,9 +456,17 @@
           document.getElementById('screensaver').addEventListener('touchstart', resetIdleTimer);
 
           // Gera QR Code dinâmico apontando para o seu formulário real no Google
-          document.getElementById('qrCodeImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(LINK_DO_FORMULARIO_ONLINE)}`;
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(LINK_DO_FORMULARIO_ONLINE)}`;
+          document.getElementById('qrCodeImg').src = qrUrl;
+          document.getElementById('qrCodeModalImg').src = qrUrl; // Aplica também ao modal interno
           
           resetIdleTimer();
+      }
+
+      // Função para abrir o modal com o QR code de compra
+      function abrirModalQRCode() {
+          resetIdleTimer(); // Reseta o timer de ociosidade para a pessoa ter tempo de pegar o celular
+          new bootstrap.Modal(document.getElementById('modalQRCode')).show();
       }
 
       // ==========================================
