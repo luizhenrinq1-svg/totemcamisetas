@@ -261,7 +261,8 @@
         <!-- PASSO 1: CURSOS -->
         <div id="step-curso" class="bg-panel fade-in-up">
             <div class="header-form">
-                <h2>TOTEM DE CAMISETAS PET-ACE</h2>
+                <!-- BOTÃO SECRETO: Toque 5 vezes no título para forçar a limpeza da cache e atualizar a app -->
+                <h2 onclick="forcarAtualizacaoPWA()" style="cursor: pointer;" title="Toque 5 vezes para atualizar o sistema">TOTEM DE CAMISETAS PET-ACE</h2>
                 <div class="alert alert-light text-start border mt-4 mb-4 rounded-4" style="font-size: 1rem; line-height: 1.6;">
                     <p class="mb-2"><i class="bi bi-info-circle text-primary"></i> <strong>Toque no seu curso abaixo</strong> para simular como ficará sua camiseta.</p>
                     <p class="mb-0 text-danger fw-bold"><i class="bi bi-exclamation-circle-fill"></i> Para realizar a compra oficial, escaneie o QR Code na tela de descanso ou solicite o QR-CODE abaixo.</p>
@@ -421,6 +422,36 @@
     </div>
 
     <script>
+      // ==========================================
+      // TRUQUE PARA FORÇAR ATUALIZAÇÃO NO TOTEM
+      // ==========================================
+      let toquesNoHeader = 0;
+      function forcarAtualizacaoPWA() {
+          toquesNoHeader++;
+          if (toquesNoHeader >= 5) {
+              // 1. Limpa todas as caches guardadas
+              if ('caches' in window) {
+                  caches.keys().then(names => {
+                      for (let name of names) caches.delete(name);
+                  });
+              }
+              // 2. Remove todos os Service Workers registados
+              if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(registrations => {
+                      for (let registration of registrations) {
+                          registration.unregister();
+                      }
+                  });
+              }
+              alert("Cache do Totem limpa com sucesso! A aplicação vai ser reiniciada com a versão mais recente.");
+              // 3. Força um reload completo, ignorando a cache do browser
+              window.location.reload(true);
+          }
+          
+          // Reseta a contagem se a pessoa parar de clicar
+          setTimeout(() => { toquesNoHeader = 0; }, 2000);
+      }
+
       // ==========================================
       // LÓGICA DO SCREENSAVER / MODO TOTEM
       // ==========================================
@@ -672,13 +703,30 @@
       }
 
       // ==========================================
-      // REGISTO DO SERVICE WORKER (PWA)
+      // REGISTO DO SERVICE WORKER (PWA) E AUTO-UPDATE
       // ==========================================
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('sw.js')
             .then(registration => {
-              console.log('ServiceWorker registado com sucesso no escopo:', registration.scope);
+              console.log('ServiceWorker registado com sucesso.');
+              
+              // 1. Tenta atualizar silenciosamente sempre que a página carrega
+              registration.update();
+
+              // 2. Fica à escuta para se o sw.js mudar no servidor
+              registration.onupdatefound = () => {
+                const installingWorker = registration.installing;
+                if (installingWorker == null) return;
+                
+                installingWorker.onstatechange = () => {
+                  if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // Há uma atualização pronta! Força a recarregar.
+                    console.log('Nova versão da app disponível. A recarregar automaticamente...');
+                    window.location.reload();
+                  }
+                };
+              };
             })
             .catch(error => {
               console.error('Falha ao registar o ServiceWorker:', error);
