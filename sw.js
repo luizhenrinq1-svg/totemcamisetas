@@ -1,4 +1,4 @@
-const CACHE_NAME = 'totem-camisetas-offline-v2';
+const CACHE_NAME = 'totem-camisetas-offline-v3'; // Versão atualizada para forçar a limpeza
 
 // Ficheiros base essenciais para a aplicação iniciar offline
 const ASSETS_TO_CACHE = [
@@ -48,8 +48,9 @@ self.addEventListener('fetch', (event) => {
       
       // 2. Se não encontrou, tenta ir à internet
       return fetch(event.request).then((networkResponse) => {
-        // Se a resposta for uma imagem do seu GitHub, guarda uma cópia na memória para a próxima vez
-        if (event.request.url.includes('raw.githubusercontent.com')) {
+        // Guarda as imagens do GitHub E TAMBÉM o QR Code gerado pela API!
+        const url = event.request.url;
+        if (url.includes('raw.githubusercontent.com') || url.includes('api.qrserver.com')) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseClone);
