@@ -1,6 +1,6 @@
-const CACHE_NAME = 'totem-camisetas-offline-v1';
+const CACHE_NAME = 'totem-camisetas-offline-v2';
 
-// Arquivos base para funcionar offline
+// Ficheiros base essenciais para a aplicação iniciar offline
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
+      console.log('Cache offline base aberta com sucesso');
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
@@ -24,7 +25,9 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
+          // Limpa versões de cache antigas quando atualizamos o CACHE_NAME
           if (cacheName !== CACHE_NAME) {
+            console.log('A remover cache antiga:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -34,18 +37,18 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// A MÁGICA OFFLINE ACONTECE AQUI
+// A MÁGICA OFFLINE: Interceta os pedidos à rede
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // 1. Se achou na memória (cache), devolve na hora (não gasta internet)
+      // 1. Se encontrou na memória (cache), devolve logo (não gasta internet e é super rápido)
       if (cachedResponse) {
         return cachedResponse;
       }
       
-      // 2. Se não achou, vai na internet buscar
+      // 2. Se não encontrou, tenta ir à internet
       return fetch(event.request).then((networkResponse) => {
-        // Se for uma imagem do seu GitHub, guarda na memória para a próxima vez
+        // Se a resposta for uma imagem do seu GitHub, guarda uma cópia na memória para a próxima vez
         if (event.request.url.includes('raw.githubusercontent.com')) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -55,8 +58,8 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       });
     }).catch(() => {
-      // Se não tiver internet e não achar na memória, não quebra a página
-      console.log("Sem conexão para carregar:", event.request.url);
+      // Ocorre quando não tem internet e o ficheiro não está na cache
+      console.log("Offline e recurso não encontrado na cache:", event.request.url);
     })
   );
 });
